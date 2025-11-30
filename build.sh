@@ -14,4 +14,4 @@ diff ../m28c.config .config
 echo "make download"
 make download -j8 || { echo "download failed"; exit 1; }
 echo "make lede"
-make -j8 V=s || { echo "make failed"; exit 1; }
+make -j$(nproc) V=s || { echo "make failed"; exit 1; }
