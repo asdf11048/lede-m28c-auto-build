@@ -1,15 +1,15 @@
 # MangoPi M28C LEDE 自动构建
 
-[![Build and Release](https://github.com/zzzz0317/lede-m28c-auto-build/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/zzzz0317/lede-m28c-auto-build/actions/workflows/build.yml)
+[![Build and Release](https://github.com/asdf11048/lede-m28c-auto-build/blob/main/.github/workflows/build.yml/badge.svg?branch=main)](https://github.com/zzzz0317/lede-m28c-auto-build/actions/workflows/build.yml)
 
 删除了大部分无用的软件包，修改了主题
 
 ## 说明
 
 1. 第一次使用建议通过 [balenaEtcher](https://etcher.balena.io/) 直接刷入 TF 卡
-2. [Actions](https://github.com/zzzz0317/lede-m28c-auto-build/blob/main/.github/workflows/build.yml) 在北京时间每周五凌晨2点自动拉取 [LEDE](https://github.com/coolsnowwolf/lede) 代码编译并发布，平时可能会不定期手动触发更新
-3. 默认 Wi-Fi SSID: `zzM28C`，密码: `m28cm28c`
-4. 默认 LAN 接口地址: `10.0.0.1`
+2. [Actions](https://github.com/asdf11048/lede-m28c-auto-build/blob/main/.github/workflows/build.yml) 在北京时间每周五凌晨2点自动拉取 [LEDE](https://github.com/coolsnowwolf/lede) 代码编译并发布，平时可能会不定期手动触发更新
+3. 默认 Wi-Fi SSID: `M28C-5G`，密码: ``
+4. 默认 LAN 接口地址: `192.168.5.1`
 5. 默认 root 密码: `password`，后续可能会变更
 6. 默认仅启用两颗核心，如需修改请访问管理员页面->系统->启动项->本地启动脚本（或编辑 /etc/rc.local），注释掉以下命令并重启：
 
@@ -69,6 +69,3 @@ echo 0 > /sys/devices/system/cpu/cpu3/online
     - 任何商业使用产生的责任与作者无关
     - 违反使用条款造成的法律纠纷需自行承担
 
-## 恰饭
-
-[来个一键三连加关注呗](https://www.bilibili.com/video/BV1USMDz8EF8/)
