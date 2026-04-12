@@ -13,11 +13,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 360  # 6 hours max
     steps:
-      - name: Free disk space
+      - name: Free disk space and setup swap
         run: |
           echo "=== Before cleanup ==="
           df -h
+          free -h
+          
+          # Clean up disk space
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
@@ -26,8 +30,17 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache/Python
           sudo rm -rf /opt/hostedtoolcache/node
           sudo apt-get clean
-          echo "=== After cleanup ==="
+          
+          # Add swap to prevent OOM during compilation
+          echo "=== Adding 4GB swap ==="
+          sudo fallocate -l 4G /swapfile || true
+          sudo chmod 600 /swapfile || true
+          sudo mkswap /swapfile || true
+          sudo swapon /swapfile || true
+          
+          echo "=== After cleanup and swap ==="
           df -h
+          free -h
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Setup environment
@@ -48,9 +61,24 @@ jobs:
             lede/dl
             lede/staging_dir
           key: ${{ runner.os }}-openwrt-${{ hashFiles('lede/feeds.conf.default', 'm28c.config') }}
-      - name: Build
+      - name: Build with monitoring
         run: |
+          # Start memory monitoring in background
+          (while true; do echo "[MEM] $(date): $(free -h | grep Mem)"; sleep 30; done) &
+          MEM_PID=$!
+          
+          # Run build
           ./build.sh
+          BUILD_EXIT=$?
+          
+          # Stop monitoring
+          kill $MEM_PID 2>/dev/null || true
+          
+          # Show final memory state
+          echo "=== Final memory state ==="
+          free -h
+          
+          exit $BUILD_EXIT
       - name: Prepare release assets
         run: |
           mkdir -p release_assets
