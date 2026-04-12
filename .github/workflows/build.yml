@@ -4,40 +4,39 @@ on:
   schedule:
     - cron: '0 18 * * 4'
   workflow_dispatch:
-    # inputs:
-    #   tag_name:
-    #     description: 'Tag name (e.g., v1.0.0)'
-    #     required: true
   # push:
-  #   branches:
-  #     - main
-  #   tags:
-  #     - '*'
+    #   branches:
+    #     - main
+    #   tags:
+    #     - '*'
 
 jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - name: Maximize build space
-        uses: easimon/maximize-build-space@master
-        with:
-          root-reserve-mb: 512
-          swap-size-mb: 1024
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'true'
-      - name: Check build space
+      - name: Free disk space
         run: |
+          echo "=== Before cleanup ==="
           df -h
-          lsblk
-          free -h
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /opt/hostedtoolcache/go
+          sudo rm -rf /opt/hostedtoolcache/Python
+          sudo rm -rf /opt/hostedtoolcache/node
+          sudo apt-get clean
+          echo "=== After cleanup ==="
+          df -h
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Setup environment
         run: |
           sudo ./install-env.sh
+      - name: Check disk space
+        run: |
+          df -h
+          free -h
       - name: Prepare
         run: |
           ./prepare.sh
@@ -48,7 +47,6 @@ jobs:
           path: |
             lede/dl
             lede/staging_dir
-#            lede/build_dir
           key: ${{ runner.os }}-openwrt-${{ hashFiles('lede/feeds.conf.default', 'm28c.config') }}
       - name: Build
         run: |
@@ -129,7 +127,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.check-changes.outputs.new_tag }}
-          # tag_name: ${{ inputs.tag_name }}
           name: ${{ steps.release-prepare.outputs.RELEASE_TITLE }}
           body_path: release_assets/openwrt-rockchip-armv8-widora_mangopi-m28c.manifest
           files: |
