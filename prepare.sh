@@ -20,10 +20,21 @@ echo "" >> feeds.conf
 echo "src-git qmodem https://github.com/FUjr/QModem.git;main" >> feeds.conf
 rm -rf files
 cp -r ../files .
+
+# Clone luci-theme-alpha
 if [ -d "package/zz/luci-theme-alpha" ]; then
     cd package/zz/luci-theme-alpha
     git pull || { echo "luci-theme-alpha git pull failed"; exit 1; }
     cd ../../..
 else
     git clone https://github.com/derisamedia/luci-theme-alpha.git package/zz/luci-theme-alpha || { echo "luci-theme-alpha git clone failed"; exit 1; }
+fi
+
+# Clone luci-app-alpha-config (required dependency for luci-theme-alpha)
+if [ -d "package/zz/luci-app-alpha-config" ]; then
+    cd package/zz/luci-app-alpha-config
+    git pull || { echo "luci-app-alpha-config git pull failed"; exit 1; }
+    cd ../../..
+else
+    git clone https://github.com/derisamedia/luci-app-alpha-config.git package/zz/luci-app-alpha-config || { echo "luci-app-alpha-config git clone failed"; exit 1; }
 fi
