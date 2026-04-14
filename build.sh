@@ -14,4 +14,6 @@ diff ../m28c.config .config
 echo "make download"
 make download -j8 || { echo "download failed"; exit 1; }
 echo "make lede"
-make -j$(nproc) V=s || { echo "make failed"; exit 1; }
+# 减少并行任务数以避免内存不足，使用4个线程而不是$(nproc)
+echo "使用4个并行任务编译，避免内存不足"
+make -j4 V=s || { echo "make failed"; exit 1; }

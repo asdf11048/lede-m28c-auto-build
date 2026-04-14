@@ -32,11 +32,16 @@ jobs:
           sudo apt-get clean
           
           # Add swap to prevent OOM during compilation
-          echo "=== Adding 4GB swap ==="
-          sudo fallocate -l 4G /swapfile || true
+          echo "=== Adding 8GB swap ==="
+          sudo fallocate -l 8G /swapfile || true
           sudo chmod 600 /swapfile || true
           sudo mkswap /swapfile || true
           sudo swapon /swapfile || true
+          
+          # 显示当前内存和swap状态
+          echo "=== 内存和swap状态 ==="
+          free -h
+          swapon --show
           
           echo "=== After cleanup and swap ==="
           df -h
@@ -63,20 +68,40 @@ jobs:
           key: ${{ runner.os }}-openwrt-${{ hashFiles('lede/feeds.conf.default', 'm28c.config') }}
       - name: Build with monitoring
         run: |
-          # Start memory monitoring in background
-          (while true; do echo "[MEM] $(date): $(free -h | grep Mem)"; sleep 30; done) &
-          MEM_PID=$!
+          # Start memory and process monitoring in background
+          echo "=== 开始构建，监控内存和进程 ==="
+          (while true; do 
+            echo "[MEM] $(date): $(free -h | grep Mem) | Swap: $(free -h | grep Swap)"; 
+            echo "[TOP] 内存使用最高的进程:"; 
+            ps aux --sort=-%mem | head -5; 
+            sleep 30; 
+          done) &
+          MONITOR_PID=$!
           
-          # Run build
+          # Run build with error handling
+          echo "=== 开始构建 ==="
+          set +e  # 不要立即退出，以便捕获错误
           ./build.sh
           BUILD_EXIT=$?
+          set -e
           
           # Stop monitoring
-          kill $MEM_PID 2>/dev/null || true
+          kill $MONITOR_PID 2>/dev/null || true
           
-          # Show final memory state
-          echo "=== Final memory state ==="
+          # Show final system state
+          echo "=== 构建完成，最终系统状态 ==="
           free -h
+          df -h
+          
+          # 如果构建失败，显示可能的错误原因
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "## 构建失败，退出码: $BUILD_EXIT"
+            echo "## 可能的原因: "
+            echo "## 1. 内存不足 (检查swap使用情况)"
+            echo "## 2. 磁盘空间不足"
+            echo "## 3. 编译错误"
+            echo "## 4. GitHub Actions资源限制"
+          fi
           
           exit $BUILD_EXIT
       - name: Prepare release assets
