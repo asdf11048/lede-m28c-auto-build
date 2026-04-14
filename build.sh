@@ -12,8 +12,11 @@ make defconfig || { echo "defconfig failed"; exit 1; }
 echo "diff initial config and new config:"
 diff ../m28c.config .config
 echo "make download"
-make download -j8 || { echo "download failed"; exit 1; }
+# 减少下载并行任务数
+make download -j2 || { echo "download failed"; exit 1; }
 echo "make lede"
-# 减少并行任务数以避免内存不足，使用4个线程而不是$(nproc)
-echo "使用4个并行任务编译，避免内存不足"
-make -j4 V=s || { echo "make failed"; exit 1; }
+# 进一步减少并行任务数以避免资源限制，使用2个线程
+# 同时禁用详细输出以减少日志量和I/O压力
+echo "使用2个并行任务编译，避免GitHub Actions资源限制"
+echo "注意：禁用详细输出以减少日志量"
+make -j2 || { echo "make failed"; exit 1; }
