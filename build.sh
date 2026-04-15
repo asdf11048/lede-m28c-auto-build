@@ -15,8 +15,8 @@ echo "make download"
 # 减少下载并行任务数
 make download -j2 || { echo "download failed"; exit 1; }
 echo "make lede"
-# 进一步减少并行任务数以避免资源限制，使用2个线程
-# 同时禁用详细输出以减少日志量和I/O压力
-echo "使用2个并行任务编译，避免GitHub Actions资源限制"
-echo "注意：禁用详细输出以减少日志量"
-make -j2 || { echo "make failed"; exit 1; }
+# 优化并行任务数：使用3个线程，平衡速度和稳定性
+# 启用轻度详细输出以便调试
+echo "使用3个并行任务编译，优化速度和稳定性"
+echo "启用轻度详细输出 (V=sc)"
+make -j3 V=sc || { echo "make failed"; exit 1; }
